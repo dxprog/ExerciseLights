@@ -102,7 +102,7 @@ void setupNetwork() {
 
 void setup() {
   // put your setup code here, to run once:
-  FastLED.addLeds<WS2812, DATA_PIN>(leds, NUM_LEDS);
+  FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
   Serial.begin(115200);
 
   setupNetwork();
