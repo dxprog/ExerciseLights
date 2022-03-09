@@ -7,7 +7,7 @@
 
 #include <credentials.h>
 
-#define NUM_LEDS   300
+#define NUM_LEDS   240
 #define DATA_PIN   22
 
 CRGB leds[NUM_LEDS];
@@ -29,9 +29,19 @@ WebServer server(80);
 uint16_t cadence = 0;
 uint16_t resistance = 0;
 
+bool bikeMode = false;
+
+void setAllLights(CRGB color) {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = color;
+  }
+  FastLED.show();
+}
+
 void setupNetwork() {
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   while (WiFi.status() != WL_CONNECTED) {
+    // flash while connecting to AP
     for (int i = 0; i < NUM_LEDS; i++) {
       leds[i] = CHSV(HUE_MIN, 255, BRIGHTNESS[(globalTimer / 2) & 0x7]);
     }
@@ -51,10 +61,43 @@ void setupNetwork() {
     Serial.println("Adjusting Peloton lighting");
     cadence = server.pathArg(0).toInt();
     resistance = server.pathArg(1).toInt();
+    bikeMode = true;
+    server.send(200, "text/html", "OK");
+  });
+
+  server.on(UriBraces("/hsv/{}/{}/{}"), []() {
+    bikeMode = false;
+    uint8_t h = server.pathArg(0).toInt();
+    uint8_t s = server.pathArg(1).toInt();
+    uint8_t v = server.pathArg(2).toInt();
+    Serial.print("Setting lights to HSV value: ");
+    Serial.print(h, HEX);
+    Serial.print(s, HEX);
+    Serial.println(v, HEX);
+    setAllLights(CHSV(h, s, v));
+    server.send(200, "text/html", "OK");
+  });
+
+  server.on(UriBraces("/rgb/{}/{}/{}"), []() {
+    bikeMode = false;
+    uint8_t r = server.pathArg(0).toInt();
+    uint8_t g = server.pathArg(1).toInt();
+    uint8_t b = server.pathArg(2).toInt();
+    Serial.print("Setting lights to RGB value: ");
+    Serial.print(r, HEX);
+    Serial.print(g, HEX);
+    Serial.println(b, HEX);
+    setAllLights(CRGB(r, g, b));
     server.send(200, "text/html", "OK");
   });
 
   server.begin();
+
+  // reset to off
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CHSV(0, 0, 0);
+  }
+  FastLED.show();
 }
 
 void setup() {
@@ -98,7 +141,7 @@ void loop() {
   globalTimer++;
   server.handleClient();
 
-  if (cadence > 0 && resistance > 0) {
+  if (bikeMode) {
     setLightsForSpeedAndResistance(cadence, resistance);
   }
 
