@@ -53,8 +53,8 @@ void setupNetwork() {
   Serial.print("Connected to WiFi: ");
   Serial.println(WiFi.localIP());
 
-  if (MDNS.begin("esp32")) {
-    Serial.println("MDSN responder starter");
+  if (MDNS.begin("exercise-lights")) {
+    Serial.println("MDNS responder starter");
   }
 
   server.on(UriBraces("/bicycle/{}/{}"), []() {
