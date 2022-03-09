@@ -93,6 +93,8 @@ void setupNetwork() {
 
   server.begin();
 
+  MDNS.addService("http", "tcp", 80);
+
   // reset to off
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(0, 0, 0);
