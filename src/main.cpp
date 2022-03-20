@@ -7,7 +7,7 @@
 
 #include <credentials.h>
 
-#define NUM_LEDS   240
+#define NUM_LEDS   300
 #define DATA_PIN   22
 
 CRGB leds[NUM_LEDS];
@@ -43,7 +43,7 @@ void setupNetwork() {
   while (WiFi.status() != WL_CONNECTED) {
     // flash while connecting to AP
     for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CHSV(HUE_MIN, 255, BRIGHTNESS[(globalTimer / 2) & 0x7]);
+      leds[i] = CHSV(HUE_MIN, 255, (i + globalTimer) % 2 == 0 ? 64 : 0);
     }
     FastLED.show();
     delay(FPS_DELAY);
