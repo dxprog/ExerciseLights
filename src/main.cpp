@@ -10,7 +10,7 @@
 #include <BicycleAnimator.h>
 #include <PulseAnimator.h>
 
-#define NUM_LEDS   300
+#define NUM_LEDS   360
 #define DATA_PIN   22
 
 CRGB leds[NUM_LEDS];
@@ -75,7 +75,9 @@ void setupNetwork() {
     Serial.print(h, HEX);
     Serial.print(s, HEX);
     Serial.println(v, HEX);
-    setAllLights(CHSV(h, s, v));
+    pulseAnimator->setSpeed(0);
+    pulseAnimator->setColor(CHSV(h, s, v));
+    currentAnimator = pulseAnimator;
     server.send(200, "text/html", "OK");
   });
 
@@ -87,7 +89,9 @@ void setupNetwork() {
     Serial.print(r, HEX);
     Serial.print(g, HEX);
     Serial.println(b, HEX);
-    setAllLights(CRGB(r, g, b));
+    pulseAnimator->setSpeed(0);
+    pulseAnimator->setColor(CRGB(r, g, b));
+    currentAnimator = pulseAnimator;
     server.send(200, "text/html", "OK");
   });
 
