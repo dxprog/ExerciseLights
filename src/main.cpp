@@ -8,6 +8,7 @@
 #include <credentials.h>
 #include <Animator.h>
 #include <BicycleAnimator.h>
+#include <PulseAnimator.h>
 
 #define NUM_LEDS   300
 #define DATA_PIN   22
@@ -20,6 +21,7 @@ CRGB leds[NUM_LEDS];
 // Global animators
 Animator *currentAnimator;
 BicycleAnimator *bicycleAnimator;
+PulseAnimator *pulseAnimator;
 
 uint32_t globalTimer;
 WebServer server(80);
@@ -33,16 +35,20 @@ void setAllLights(CRGB color) {
   FastLED.show();
 }
 
+void endFrame() {
+  FastLED.show();
+  delay(FPS_DELAY);
+  globalTimer++;
+}
+
 void setupNetwork() {
   WiFi.begin(WIFI_SSID, WIFI_PASS);
+  pulseAnimator->setColor(CRGB(0, 32, 64));
+  pulseAnimator->setSpeed(120);
   while (WiFi.status() != WL_CONNECTED) {
     // flash while connecting to AP
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CHSV(HUE_MIN, 255, (i + globalTimer) % 2 == 0 ? 64 : 0);
-    }
-    FastLED.show();
-    delay(FPS_DELAY);
-    globalTimer++;
+    pulseAnimator->renderFrame(globalTimer);
+    endFrame();
   }
 
   Serial.print("Connected to WiFi: ");
@@ -102,6 +108,7 @@ void setup() {
   Serial.begin(115200);
 
   bicycleAnimator = new BicycleAnimator(NUM_LEDS, leds);
+  pulseAnimator = new PulseAnimator(NUM_LEDS, leds);
   currentAnimator = bicycleAnimator;
 
   setupNetwork();
@@ -110,11 +117,8 @@ void setup() {
 }
 
 void loop() {
-  globalTimer++;
   server.handleClient();
 
   currentAnimator->renderFrame(globalTimer);
-  FastLED.show();
-
-  delay(FPS_DELAY);
+  endFrame();
 }
