@@ -9,6 +9,7 @@
 #include <Animator.h>
 #include <BicycleAnimator.h>
 #include <PulseAnimator.h>
+#include <RgbAnimator.h>
 
 #define NUM_LEDS   360
 #define DATA_PIN   22
@@ -22,6 +23,7 @@ CRGB leds[NUM_LEDS];
 Animator *currentAnimator;
 BicycleAnimator *bicycleAnimator;
 PulseAnimator *pulseAnimator;
+RgbAnimator *rgbAnimator;
 
 uint32_t globalTimer;
 WebServer server(80);
@@ -71,13 +73,8 @@ void setupNetwork() {
     uint8_t h = server.pathArg(0).toInt();
     uint8_t s = server.pathArg(1).toInt();
     uint8_t v = server.pathArg(2).toInt();
-    Serial.print("Setting lights to HSV value: ");
-    Serial.print(h, HEX);
-    Serial.print(s, HEX);
-    Serial.println(v, HEX);
-    pulseAnimator->setSpeed(0);
-    pulseAnimator->setColor(CHSV(h, s, v));
-    currentAnimator = pulseAnimator;
+    rgbAnimator->setTargetRgb(CHSV(h, s, v), globalTimer);
+    currentAnimator = rgbAnimator;
     server.send(200, "text/html", "OK");
   });
 
@@ -85,13 +82,8 @@ void setupNetwork() {
     uint8_t r = server.pathArg(0).toInt();
     uint8_t g = server.pathArg(1).toInt();
     uint8_t b = server.pathArg(2).toInt();
-    Serial.print("Setting lights to RGB value: ");
-    Serial.print(r, HEX);
-    Serial.print(g, HEX);
-    Serial.println(b, HEX);
-    pulseAnimator->setSpeed(0);
-    pulseAnimator->setColor(CRGB(r, g, b));
-    currentAnimator = pulseAnimator;
+    rgbAnimator->setTargetRgb(CRGB(r, g, b), globalTimer);
+    currentAnimator = rgbAnimator;
     server.send(200, "text/html", "OK");
   });
 
@@ -113,6 +105,7 @@ void setup() {
 
   bicycleAnimator = new BicycleAnimator(NUM_LEDS, leds);
   pulseAnimator = new PulseAnimator(NUM_LEDS, leds);
+  rgbAnimator = new RgbAnimator(NUM_LEDS, leds);
   currentAnimator = bicycleAnimator;
 
   setupNetwork();
